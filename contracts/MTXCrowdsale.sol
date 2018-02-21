@@ -378,6 +378,7 @@ contract MTXCrowdsale is Ownable, Crowdsale, MintableToken {
         require(_ownerTwo != address(0));
         require(_startTime > 0);
         owner = _owner;
+        owner = msg.sender;
         ownerTwo = _ownerTwo;
         transfersEnabled = true;
         mintingFinished = false;
@@ -426,30 +427,29 @@ contract MTXCrowdsale is Ownable, Crowdsale, MintableToken {
     */
     function getTotalAmountOfTokens(uint256 _weiAmount) internal view returns (uint256) {
         uint256 currentDate = now;
-        //currentDate = 1520640000; //for test's
         uint256 amountOfTokens = 0;
         if(currentDate >= startTimePreICO && currentDate < startTimeICO){
             if(_weiAmount < weiMinSalePreIco){
                 return 0;
             }
             if (_weiAmount < 10 * 10**18){
-                amountOfTokens = amountOfTokens.mul((rate.div(100)).mul(105));
+                amountOfTokens = _weiAmount.mul(rate.div(100).mul(105));
             }
-            if (_weiAmount < 25 * 10**18){
-                amountOfTokens = amountOfTokens.mul((rate.div(100)).mul(110));
+            if (_weiAmount >= 10 * 10**18 && _weiAmount < 25 * 10**18){
+                amountOfTokens = _weiAmount.mul(rate.div(100).mul(110));
             }
-            if (_weiAmount < 50 * 10**18){
-                amountOfTokens = amountOfTokens.mul((rate.div(100)).mul(115));
+            if (_weiAmount >= 25 * 10**18 && _weiAmount < 50 * 10**18){
+                amountOfTokens = _weiAmount.mul(rate.div(100).mul(115));
             }
             if (_weiAmount >= 50 * 10**18){
-                amountOfTokens = amountOfTokens.mul((rate.div(100)).mul(120));
+                amountOfTokens = _weiAmount.mul(rate.div(100).mul(120));
             }
         }
         if(currentDate >= startTimeICO && currentDate < endTimeICO){
             if(_weiAmount < weiMinSaleIco){
                 return 0;
             }
-            amountOfTokens = amountOfTokens.mul(rate);
+            amountOfTokens = _weiAmount.mul(rate);
         }
         return amountOfTokens;
     }

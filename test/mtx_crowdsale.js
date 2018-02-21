@@ -3,11 +3,12 @@ var MTXCrowdsale = artifacts.require("./MTXCrowdsale.sol");
 
 contract('MTXCrowdsale', (accounts) => {
     var contract;
-    var owner = "0xb79151e54dE4fc0a5940A52A70f5607055AdB73E";
-    var rate = Number(20000*1.2);
-    var buyWei = 4 * 10**18;
-    var rateNew = Number(300/10**8);
-    var buyWeiNew = 5 * 10**17;
+    //var owner = "0xb79151e54dE4fc0a5940A52A70f5607055AdB73E";
+    var owner = accounts[0];
+    var rate = 20000;
+    var buyWei = 4e+18;
+    var rateNew = 20000;
+    var buyWeiNew = 4 * 10**17;
     var buyWeiMin = 1 * 10**15;
     var totalSupply = 75e+25;
 
@@ -20,6 +21,7 @@ contract('MTXCrowdsale', (accounts) => {
     it('get address contract', async ()  => {
         assert.notEqual(undefined, contract.address);
     });
+
 
     it('verification balance owner contract', async ()  => {
         var balanceOwner = await contract.balanceOf(owner);
@@ -34,7 +36,7 @@ contract('MTXCrowdsale', (accounts) => {
         var weiRaisedBefore = await contract.weiRaised.call();
         //console.log("tokenAllocatedBefore = " + tokenAllocatedBefore);
 
-        var numberToken = await contract.validPurchaseTokens.call(Number(buyWei));
+        var numberToken = await contract.validPurchaseTokens.call(buyWei);
         //console.log(" numberTokens = " + JSON.stringify(numberToken));
         //console.log("numberTokens = " + numberToken);
 
@@ -45,7 +47,6 @@ contract('MTXCrowdsale', (accounts) => {
         assert.equal(0, tokenAllocatedBefore);
         assert.equal(rate*buyWei, tokenAllocatedAfter);
 
-/*
        var balanceAccountTwoAfter = await contract.balanceOf(accounts[2]);
         assert.isTrue(balanceAccountTwoBefore < balanceAccountTwoAfter);
         assert.equal(0, balanceAccountTwoBefore);
@@ -72,7 +73,6 @@ contract('MTXCrowdsale', (accounts) => {
         var balanceOwnerAfter = await contract.balanceOf(owner);
         //console.log("balanceOwnerAfter = " + Number(balanceOwnerAfter));
         //assert.equal(totalSupply - balanceAccountThreeAfter - balanceAccountTwoAfter, balanceOwnerAfter);
-*/
     });
 
 
@@ -100,6 +100,16 @@ contract('MTXCrowdsale', (accounts) => {
             //console.log("numberTokensMinWey = " + numberTokensMinWey);
             assert.equal(0, numberTokensMinWey);
     });
+
+/*
+    it('check transfer fund for team', async ()  => {
+        var balanceOwnerBefore = await contract.balanceOf(owner);
+        console.log("balanceOwnerBefore = " + balanceOwnerBefore);
+        await contract.transfer(accounts[2],700e+24,{from:accounts[0]});
+        var balanceOwnerAfter = await contract.balanceOf(owner);
+        console.log("balanceOwnerAfter = " + balanceOwnerAfter);
+    });
+*/
 
 });
 
