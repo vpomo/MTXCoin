@@ -355,10 +355,16 @@ contract MTXCrowdsale is Ownable, Crowdsale, MintableToken {
 
     uint256 public weiMinSalePreIco = 3 * 10 ** 18; // 3 ETH
     uint256 public weiMinSaleIco = 1 * 10 ** 17; // 0.1 ETH
+    uint256 public weiMinSaleWhiteWaitlist = 1 * 10 ** 17; // 0.1 ETH
+    uint256 public weiMaxSaleWhiteWaitlist = 5 * 10 ** 18; // 5 ETH
+
     uint256 public rate = 20000;
 
     mapping (address => uint256) public deposited;
-    mapping(address => bool) public whitelist;
+    mapping(address => bool) public preICOWhiteList;
+    mapping(address => bool) public preICOWaitList;
+    mapping(address => bool) public iCOWhiteList;
+    mapping(address => bool) public iCOWaitList;
 
     uint256 public constant INITIAL_SUPPLY = 750 * (10 ** 6) * (10 ** uint256(decimals));
     uint256 public fundForSale = 375 * (10 ** 6) * (10 ** uint256(decimals));
@@ -395,37 +401,64 @@ contract MTXCrowdsale is Ownable, Crowdsale, MintableToken {
     }
 
     /**
-   * @dev Reverts if beneficiary is not whitelisted. Can be used when extending this contract.
+   * @dev Adds single address to whitelist or waitlist.
+   * param _selectList: 1 - preICOWhiteList, 2 - preICOWaitList
+   * 3 - iCOWhiteList, 4 - iCOWaitList
+   * param _beneficiary Address to be added to the whitelist
    */
-    modifier isWhitelisted(address _beneficiary) {
-        require(whitelist[_beneficiary]);
-        _;
+    function addToWhiteOrWaitList(uint8 _selectList, address _beneficiary) external onlyOwner {
+        require(0 < _selectList && _selectList < 5);
+        setValueTrueList(_selectList, _beneficiary);
     }
 
     /**
-   * @dev Adds single address to whitelist.
-   * @param _beneficiary Address to be added to the whitelist
-   */
-    function addToWhitelist(address _beneficiary) external onlyOwner {
-        whitelist[_beneficiary] = true;
-    }
-
-    /**
-     * @dev Adds list of addresses to whitelist. Not overloaded due to limitations with truffle testing.
-     * @param _beneficiaries Addresses to be added to the whitelist
+     * @dev Adds list of addresses to whitelist or waitlist. Not overloaded due to limitations with truffle testing.
+     * param _beneficiaries Addresses to be added to the whitelist
      */
-    function addManyToWhitelist(address[] _beneficiaries) external onlyOwner {
+    function addManyToWhiteOrWaitList(uint8 _selectList, address[] _beneficiaries) external onlyOwner {
+        require(0 < _selectList && _selectList < 5);
         for (uint256 i = 0; i < _beneficiaries.length; i++) {
-            whitelist[_beneficiaries[i]] = true;
+            setValueTrueList(_selectList, _beneficiaries[i]);
         }
     }
 
     /**
      * @dev Removes single address from whitelist.
-     * @param _beneficiary Address to be removed to the whitelist
+     * param _beneficiary Address to be removed to the whitelist
      */
-    function removeFromWhitelist(address _beneficiary) external onlyOwner {
-        whitelist[_beneficiary] = false;
+    function removeFromWhiteOrWaitList(uint8 _selectList, address _beneficiary) external onlyOwner {
+        require(0 < _selectList && _selectList < 5);
+        setValueFalseList(_selectList, _beneficiary);
+    }
+
+    function setValueTrueList(uint8 _selectList, address _beneficiary) internal onlyOwner {
+        if(_selectList == 1){
+            preICOWhiteList[_beneficiary] = true;
+        }
+        if(_selectList == 2){
+            preICOWaitList[_beneficiary] = true;
+        }
+        if(_selectList == 3){
+            iCOWhiteList[_beneficiary] = true;
+        }
+        if(_selectList == 4){
+            iCOWaitList[_beneficiary] = true;
+        }
+    }
+
+    function setValueFalseList(uint8 _selectList, address _beneficiary) internal onlyOwner {
+        if(_selectList == 1){
+            preICOWhiteList[_beneficiary] = false;
+        }
+        if(_selectList == 2){
+            preICOWaitList[_beneficiary] = false;
+        }
+        if(_selectList == 3){
+            iCOWhiteList[_beneficiary] = false;
+        }
+        if(_selectList == 4){
+            iCOWaitList[_beneficiary] = false;
+        }
     }
 
     // fallback function can be used to buy tokens
@@ -464,6 +497,20 @@ contract MTXCrowdsale is Ownable, Crowdsale, MintableToken {
         uint256 currentDate = now;
         uint256 amountOfTokens = 0;
         if(currentDate >= startTimePreICO && currentDate < startTimeICO){
+            // preICO Whitelist
+            if(currentDate >= startTimePreICO && currentDate < (startTimePreICO + 1 days)){
+                require(preICOWhiteList[msg.sender]);
+                require(weiMinSaleWhiteWaitlist <= _weiAmount && _weiAmount <= weiMaxSaleWhiteWaitlist);
+                amountOfTokens = _weiAmount.mul(rate.div(100).mul(105));
+                return amountOfTokens;
+            }
+            // preICO Waitlist
+            if(currentDate >= (startTimePreICO + 1 days) && currentDate < (startTimePreICO + 2 days)){
+                require(preICOWaitList[msg.sender]);
+                require(weiMinSaleWhiteWaitlist <= _weiAmount && _weiAmount <= weiMaxSaleWhiteWaitlist);
+                amountOfTokens = _weiAmount.mul(rate.div(100).mul(105));
+                return amountOfTokens;
+            }
             if(_weiAmount < weiMinSalePreIco){
                 return 0;
             }
@@ -481,6 +528,20 @@ contract MTXCrowdsale is Ownable, Crowdsale, MintableToken {
             }
         }
         if(currentDate >= startTimeICO && currentDate < endTimeICO){
+            // preICO Whitelist
+            if(currentDate >= startTimeICO && currentDate < (startTimeICO + 1 days)){
+                require(iCOWhiteList[msg.sender]);
+                require(weiMinSaleWhiteWaitlist <= _weiAmount && _weiAmount <= weiMaxSaleWhiteWaitlist);
+                amountOfTokens = _weiAmount.mul(rate);
+                return amountOfTokens;
+            }
+            // preICO Waitlist
+            if(currentDate >= (startTimeICO + 1 days) && currentDate < (startTimeICO + 2 days)){
+                require(iCOWaitList[msg.sender]);
+                require(weiMinSaleWhiteWaitlist <= _weiAmount && _weiAmount <= weiMaxSaleWhiteWaitlist);
+                amountOfTokens = _weiAmount.mul(rate);
+                return amountOfTokens;
+            }
             if(_weiAmount < weiMinSaleIco){
                 return 0;
             }

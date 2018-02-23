@@ -8,4 +8,9 @@ module.exports = {
             gas: 4600000
         }
     }
+optimizer: {
+  "enabled": false,
+  "runs": 1000
+}
+
 };
