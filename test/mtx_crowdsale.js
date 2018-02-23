@@ -28,7 +28,7 @@ contract('MTXCrowdsale', (accounts) => {
         //console.log("balanceOwner = " + balanceOwner);
         assert.equal(totalSupply, balanceOwner);
     });
-/*
+
     it('verification of receiving Ether', async ()  => {
         var tokenAllocatedBefore = await contract.tokenAllocated.call();
         var balanceAccountTwoBefore = await contract.balanceOf(accounts[2]);
@@ -74,7 +74,6 @@ contract('MTXCrowdsale', (accounts) => {
         //assert.equal(totalSupply - balanceAccountThreeAfter - balanceAccountTwoAfter, balanceOwnerAfter);
     });
 
-
     it('verification claim tokens', async ()  => {
         var balanceAccountOneBefore = await contract.balanceOf(accounts[0]);
         assert.equal(0, balanceAccountOneBefore);
@@ -99,7 +98,7 @@ contract('MTXCrowdsale', (accounts) => {
             //console.log("numberTokensMinWey = " + numberTokensMinWey);
             assert.equal(0, numberTokensMinWey);
     });
-*/
+
 /*
     it('check transfer fund for team', async ()  => {
         var balanceOwnerBefore = await contract.balanceOf(owner);
